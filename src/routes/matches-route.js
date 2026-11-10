@@ -63,11 +63,16 @@ route.post("/", async (req, res) => {
       })
       .returning();
 
+    if (res.app.locals.broadcastMatchCreated) {
+      res.app.locals.broadcastMatchCreated(event);
+    }
+
     res.status(201).json({ data: event });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       error: "Failed to create match.",
-      detail: JSON.stringify(error),
+      detail: error,
     });
   }
 });

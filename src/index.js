@@ -1,9 +1,12 @@
 import express from "express";
+import http from "http";
 
 // routes
 import routeMatches from "./routes/matches-route.js";
+import { attachWebSocketServer } from "./ws/server.js";
 
 const app = express();
+const server = http.createServer(app);
 
 const port = 8000;
 
@@ -15,6 +18,10 @@ app.get("/", (req, res) => {
 
 app.use("/matches", routeMatches);
 
-app.listen(port, () => {
+const { broadcastMatchCreated } = attachWebSocketServer(server);
+app.locals.broadcastMatchCreated = broadcastMatchCreated;
+
+server.listen(port, () => {
   console.log(`Server is live on port ${port}`);
+  console.log(`WebSocket broadcast is live on ws://localhots:${port}/ws`);
 });
