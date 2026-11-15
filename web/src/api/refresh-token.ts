@@ -10,11 +10,11 @@ const fetchRefreshToken = async () => {
   }
 
   refreshPromise = axios
-    .get(`${getEnv("VITE_SERVER_HOST")}/api/refresh-token`, {
+    .get(`${getEnv("VITE_SERVER_HOST")}/refresh-token`, {
       withCredentials: true,
     })
     .then((response) => {
-      saveAccessToken(response.data.accessToken);
+      saveAccessToken(response.data.data[0].accessToken);
     })
     .catch((error) => {
       clearAccessToken();
