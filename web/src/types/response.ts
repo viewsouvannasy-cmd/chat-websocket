@@ -20,7 +20,7 @@ export interface User extends BaseResponse {
 
 export interface WroldChat extends BaseResponse {
   data: {
-    ws_id: number;
+    wc_id: number;
     user_id: number;
     content: string;
     create_at: Date;

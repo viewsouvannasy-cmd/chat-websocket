@@ -1,6 +1,8 @@
 import { sql } from "../../../config/database.js";
-
+import { sendMessgae } from "../../../ws/ws-server.js";
 import { Request, Response, NextFunction } from "express";
+
+import type { WroldChat } from "../../../types/chat.js";
 
 const getWorldChat = async (
   req: Request,
@@ -9,9 +11,12 @@ const getWorldChat = async (
 ) => {
   try {
     const results = await sql`
-        SELECT 
-        *
-        FROM world_chat 
+        SELECT
+        wc.*,
+        u.user_name
+        FROM world_chat as wc
+        JOIN users as u
+        ON wc.user_id = u.user_id 
         `;
 
     res.status(200).json({ ok: true, msg: "Success", data: results });
@@ -42,6 +47,17 @@ const sendWorldChat = async (
         )
         RETURNING *
         `;
+
+    const [user] = await sql`
+    SELECT
+      user_name
+    FROM users 
+    WHERE user_id = ${user_id}
+    `;
+
+    result[0].user_name = user.user_name;
+    const data = result[0] as WroldChat;
+    sendMessgae(data);
 
     res
       .status(201)
