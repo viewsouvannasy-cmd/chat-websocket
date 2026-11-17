@@ -15,7 +15,7 @@ const startServer = async () => {
     const port = getEnv("PORT") || 7000;
     server.listen(port, () => {
       console.log(`Server is live on port ${port}`);
-      console.log(`WebSocket World Chat is live on ws://localhost:${port}/ws`);
+      console.log(`WebSocket World Chat is live on ${getEnv("WS_URL")}/ws`);
     });
   } catch (error) {
     console.log("Server crush!!!");

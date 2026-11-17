@@ -1,5 +1,7 @@
+import { getEnv } from "../../utils/getEnv";
+
 export function connectWebSocketServer() {
-  const socket = new WebSocket("ws://localhost:8000/ws");
+  const socket = new WebSocket(getEnv("VITE_WS_URL"));
 
   socket.addEventListener("open", () => {
     console.log("connected");
