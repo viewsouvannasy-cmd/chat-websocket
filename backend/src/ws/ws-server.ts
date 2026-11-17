@@ -7,7 +7,7 @@ import type { WroldChat } from "../types/chat.js";
 let wss: WebSocketServer;
 
 interface ClientSocket extends WebSocket {
-  user_id: number;
+  isAlive: boolean;
 }
 
 export function sendMessgae(payload: WroldChat) {
@@ -33,6 +33,26 @@ export function attachWebSocketServer(server: Server) {
   });
 
   wss.on("connection", (socket: ClientSocket) => {
+    socket.isAlive = true;
+
+    socket.on("pong", () => {
+      socket.isAlive = true;
+    });
+
+    const interval = setInterval(() => {
+      wss.clients.forEach((client) => {
+        const ws = client as ClientSocket;
+        if (ws.isAlive === false) {
+          return ws.terminate();
+        }
+
+        ws.isAlive = false;
+        ws.ping();
+      });
+    }, 5000);
+
+    wss.on("close", () => clearInterval(interval));
+
     socket.on("error", (error) => {
       console.error("WebSocket error:", error);
     });
