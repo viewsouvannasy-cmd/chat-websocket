@@ -1,11 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { useSignIn } from "../api/auth/auth";
 
 import SipnnerLoad from "../components/load-state/SipnnerLoad";
-
-import { fetchRefreshToken } from "../api/refresh-token";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -13,14 +11,6 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetch = async () => {
-      await fetchRefreshToken();
-    };
-
-    fetch();
-  }, []);
 
   const [userName, setUserName] = useState("");
   const [userPassword, setUserPassword] = useState("");
