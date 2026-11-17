@@ -39,22 +39,22 @@ export function attachWebSocketServer(server: Server) {
       socket.isAlive = true;
     });
 
-    const interval = setInterval(() => {
-      wss.clients.forEach((client) => {
-        const ws = client as ClientSocket;
-        if (ws.isAlive === false) {
-          return ws.terminate();
-        }
-
-        ws.isAlive = false;
-        ws.ping();
-      });
-    }, 5000);
-
-    wss.on("close", () => clearInterval(interval));
-
     socket.on("error", (error) => {
       console.error("WebSocket error:", error);
     });
   });
+
+  const interval = setInterval(() => {
+    wss.clients.forEach((client) => {
+      const ws = client as ClientSocket;
+      if (ws.isAlive === false) {
+        return ws.terminate();
+      }
+
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }, 5000);
+
+  wss.on("close", () => clearInterval(interval));
 }
