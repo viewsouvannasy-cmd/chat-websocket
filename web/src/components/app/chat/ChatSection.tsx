@@ -6,7 +6,8 @@ import {
   useGetWorldChat,
   useSendWorldChat,
 } from "../../../api/chat/world-chat/world-chat";
-import { connectWebSocketServer } from "../../../api/ws/ws";
+
+import { socket } from "../../../main";
 
 export function ChatSection() {
   const [inputMessage, setInputMessage] = useState("");
@@ -17,7 +18,6 @@ export function ChatSection() {
   const { data: chatData } = useGetWorldChat();
   const [localMessage, setLocalMessage] = useState<
     {
-      wc_id: number;
       user_id: number;
       content: string;
       create_at: Date;
@@ -35,16 +35,24 @@ export function ChatSection() {
   const handleSendWorldChat = () => {
     if (!inputMessage.trim()) return;
 
-    mutate(
+    const currentUser = userData?.data[0];
+
+    if (!currentUser) {
+      return;
+    }
+
+    mutate({
+      content: inputMessage,
+    });
+    setLocalMessage((prev) => [
+      ...prev,
       {
+        user_id: currentUser.user_id,
         content: inputMessage,
+        create_at: currentUser.create_at,
+        user_name: currentUser.user_name,
       },
-      {
-        onSuccess: (data) => {
-          setLocalMessage((prev) => [...prev, data.data[0]]);
-        },
-      },
-    );
+    ]);
     setInputMessage("");
   };
 
@@ -59,22 +67,23 @@ export function ChatSection() {
   }, [dataChatList]);
 
   useEffect(() => {
-    const socket = connectWebSocketServer();
-
-    socket.addEventListener("message", (event) => {
+    const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
-      if (data.user_id === userData?.data[0].user_id) return;
+
+      if (data.user_id === userData?.data[0].user_id) {
+        console.log("log");
+        return;
+      }
+
       const update = [...localMessage, { ...data }];
       setLocalMessage(update);
-    });
+    };
+    socket.addEventListener("message", handleMessage);
 
     return () => {
-      socket.removeEventListener("message", (event) => console.log(event.data));
-      socket.close();
+      socket.removeEventListener("message", handleMessage);
     };
-  }, [localMessage, userData]);
-
-  console.log(localMessage);
+  }, [userData, localMessage]);
 
   return (
     <>
@@ -84,11 +93,11 @@ export function ChatSection() {
           className="flex h-[86%] justify-center overflow-y-auto"
         >
           <div className="flex max-w-140 flex-1 flex-col gap-5 transition-all">
-            {dataChatList?.map((msg) => {
+            {dataChatList?.map((msg, index) => {
               const isCurrentUser = msg.user_id === userData?.data[0].user_id;
               return (
                 <div
-                  key={msg.wc_id}
+                  key={index}
                   className={`flex flex-col ${isCurrentUser ? "items-end self-end" : "items-start self-start"}`}
                 >
                   <span className="text-sm font-medium">

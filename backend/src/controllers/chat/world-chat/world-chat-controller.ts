@@ -61,7 +61,7 @@ const sendWorldChat = async (
 
     res
       .status(201)
-      .json({ ok: true, msg: "Send World Chat Success", data: result });
+      .json({ ok: true, msg: "Send World Chat Success", data: [] });
   } catch (error) {
     next(error);
   }
