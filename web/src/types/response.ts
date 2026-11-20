@@ -27,3 +27,12 @@ export interface WroldChat extends BaseResponse {
     user_name: string;
   }[];
 }
+
+export interface GroupChat extends BaseResponse {
+  data: {
+    g_id: number;
+    group_name: string;
+    is_owner: boolean;
+    members: string[];
+  }[];
+}
