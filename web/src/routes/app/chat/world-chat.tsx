@@ -8,9 +8,10 @@ export const Route = createFileRoute("/app/chat/world-chat")({
 
 function RouteComponent() {
   return (
-    <>
+    <div className="flex h-dvh w-dvw flex-col overflow-hidden">
       <Header section="world-chat" />
+
       <ChatSection />
-    </>
+    </div>
   );
 }

@@ -10,7 +10,7 @@ export function Header({
   const { data } = useGetUserData();
 
   return (
-    <div className="fixed flex w-full items-center justify-between gap-3 bg-white p-2">
+    <div className="flex w-full items-center justify-between gap-3 bg-white p-2">
       <div className="font-semibold">{data?.data[0]?.user_name}</div>
       <div>
         <Link
@@ -21,7 +21,7 @@ export function Header({
           World
         </Link>
         <Link
-          to="/app/chat/group-chat"
+          to="/app/chat/group"
 
           className={`cursor-pointer px-3 py-1 text-sm font-semibold ${section === "group-chat" ? "bg-black text-white" : "bg-transparent text-gray-400"} rounded-full`}
         >

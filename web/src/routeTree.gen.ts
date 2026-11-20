@@ -10,18 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppChatGroupChatRouteImport } from './routes/app/chat/group-chat'
 import { Route as AppChatP2pChatRouteImport } from './routes/app/chat/p2p-chat'
 import { Route as AppChatWorldChatRouteImport } from './routes/app/chat/world-chat'
+import { Route as AppChatChar91groupChar93IndexRouteImport } from './routes/app/chat/[group]/index'
+import { Route as AppChatChar91groupChar93Group_idRouteImport } from './routes/app/chat/[group]/$group_id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppChatGroupChatRoute = AppChatGroupChatRouteImport.update({
-  id: '/app/chat/group-chat',
-  path: '/app/chat/group-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppChatP2pChatRoute = AppChatP2pChatRouteImport.update({
@@ -34,46 +30,71 @@ const AppChatWorldChatRoute = AppChatWorldChatRouteImport.update({
   path: '/app/chat/world-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppChatChar91groupChar93IndexRoute =
+  AppChatChar91groupChar93IndexRouteImport.update({
+    id: '/app/chat/group/',
+    path: '/app/chat/group/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AppChatChar91groupChar93Group_idRoute =
+  AppChatChar91groupChar93Group_idRouteImport.update({
+    id: '/app/chat/group/$group_id',
+    path: '/app/chat/group/$group_id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app/chat/group-chat': typeof AppChatGroupChatRoute
   '/app/chat/p2p-chat': typeof AppChatP2pChatRoute
   '/app/chat/world-chat': typeof AppChatWorldChatRoute
+  '/app/chat/group/$group_id': typeof AppChatChar91groupChar93Group_idRoute
+  '/app/chat/group/': typeof AppChatChar91groupChar93IndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app/chat/group-chat': typeof AppChatGroupChatRoute
   '/app/chat/p2p-chat': typeof AppChatP2pChatRoute
   '/app/chat/world-chat': typeof AppChatWorldChatRoute
+  '/app/chat/group/$group_id': typeof AppChatChar91groupChar93Group_idRoute
+  '/app/chat/group': typeof AppChatChar91groupChar93IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app/chat/group-chat': typeof AppChatGroupChatRoute
   '/app/chat/p2p-chat': typeof AppChatP2pChatRoute
   '/app/chat/world-chat': typeof AppChatWorldChatRoute
+  '/app/chat/group/$group_id': typeof AppChatChar91groupChar93Group_idRoute
+  '/app/chat/group/': typeof AppChatChar91groupChar93IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/app/chat/group-chat' | '/app/chat/p2p-chat' | '/app/chat/world-chat'
+    | '/'
+    | '/app/chat/p2p-chat'
+    | '/app/chat/world-chat'
+    | '/app/chat/group/$group_id'
+    | '/app/chat/group/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/app/chat/group-chat' | '/app/chat/p2p-chat' | '/app/chat/world-chat'
+    | '/'
+    | '/app/chat/p2p-chat'
+    | '/app/chat/world-chat'
+    | '/app/chat/group/$group_id'
+    | '/app/chat/group'
   id:
     | '__root__'
     | '/'
-    | '/app/chat/group-chat'
     | '/app/chat/p2p-chat'
     | '/app/chat/world-chat'
+    | '/app/chat/group/$group_id'
+    | '/app/chat/group/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppChatGroupChatRoute: typeof AppChatGroupChatRoute
   AppChatP2pChatRoute: typeof AppChatP2pChatRoute
   AppChatWorldChatRoute: typeof AppChatWorldChatRoute
+  AppChatChar91groupChar93Group_idRoute: typeof AppChatChar91groupChar93Group_idRoute
+  AppChatChar91groupChar93IndexRoute: typeof AppChatChar91groupChar93IndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -83,13 +104,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/chat/group-chat': {
-      id: '/app/chat/group-chat'
-      path: '/app/chat/group-chat'
-      fullPath: '/app/chat/group-chat'
-      preLoaderRoute: typeof AppChatGroupChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/chat/p2p-chat': {
@@ -106,14 +120,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatWorldChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/chat/group/': {
+      id: '/app/chat/group/'
+      path: '/app/chat/group'
+      fullPath: '/app/chat/group/'
+      preLoaderRoute: typeof AppChatChar91groupChar93IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/chat/group/$group_id': {
+      id: '/app/chat/group/$group_id'
+      path: '/app/chat/group/$group_id'
+      fullPath: '/app/chat/group/$group_id'
+      preLoaderRoute: typeof AppChatChar91groupChar93Group_idRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppChatGroupChatRoute: AppChatGroupChatRoute,
   AppChatP2pChatRoute: AppChatP2pChatRoute,
   AppChatWorldChatRoute: AppChatWorldChatRoute,
+  AppChatChar91groupChar93Group_idRoute: AppChatChar91groupChar93Group_idRoute,
+  AppChatChar91groupChar93IndexRoute: AppChatChar91groupChar93IndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
