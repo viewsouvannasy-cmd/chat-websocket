@@ -9,6 +9,7 @@ import authRoute from "./routes/auth-route.js";
 import refreshTokenRoute from "./routes/refresh-token-route.js";
 import worldChatRoute from "./routes/chat/world-chat-route.js";
 import userRoute from "./routes/user-route.js";
+import groupChatRoute from "./routes/chat/group-chat-route.js";
 
 import getEnv from "./utils/getEnv.js";
 import verifyJwt from "./middleware/token/verifyJwt.js";
@@ -33,6 +34,7 @@ app.use("/auth", authRoute);
 app.use("/refresh-token", refreshTokenRoute);
 
 app.use("/world-chat", verifyJwt, worldChatRoute);
+app.use("/group-chat", verifyJwt, groupChatRoute);
 app.use("/user", verifyJwt, userRoute);
 
 app.use(errorHandler);

@@ -1,11 +1,11 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 
-import { IconArrow } from "../../icon/IconArrow";
 import { useGetUserData } from "../../../api/user/user";
 import {
   useGetWorldChat,
   useSendWorldChat,
 } from "../../../api/chat/world-chat/world-chat";
+import { InputMessage } from "./InputMessage";
 
 import { socket } from "../../../main";
 
@@ -87,12 +87,12 @@ export function ChatSection() {
 
   return (
     <>
-      <div className="h-dvh w-dvw px-4 pt-11">
+      <div className="flex min-h-0 flex-1 flex-col items-center px-4 pb-24">
         <div
           ref={containerRef}
-          className="flex h-[86%] justify-center overflow-y-auto"
+          className="flex w-full flex-1 justify-center overflow-y-auto overscroll-contain"
         >
-          <div className="flex max-w-140 flex-1 flex-col gap-5 transition-all">
+          <div className="flex w-full max-w-140 flex-col gap-5 transition-all">
             {dataChatList?.map((msg, index) => {
               const isCurrentUser = msg.user_id === userData?.data[0].user_id;
               return (
@@ -113,32 +113,11 @@ export function ChatSection() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 flex w-full items-center justify-center bg-white p-3">
-        <div className="flex w-full max-w-140 items-center justify-between gap-2 rounded-full border border-gray-200 p-4 px-5 shadow-lg shadow-gray-300">
-          <textarea
-            className="flex-1 resize-none outline-none"
-            placeholder="type message..."
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.nativeEvent.isComposing) return;
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault(); // ยกเลิกการขึ้นบรรทัดใหม่
-                handleSendWorldChat();
-              }
-            }}
-
-            rows={1}
-          />
-
-          <button
-            onClick={handleSendWorldChat}
-            className={`rounded-full p-1 transition-colors duration-100 ${inputMessage.length > 0 ? "bg-black" : "bg-gray-300"}`}
-          >
-            <IconArrow color="white" strokeWidth={2} />
-          </button>
-        </div>
-      </div>
+      <InputMessage
+        inputMessage={inputMessage}
+        setInputMessage={setInputMessage}
+        func={handleSendWorldChat}
+      />
     </>
   );
 }
