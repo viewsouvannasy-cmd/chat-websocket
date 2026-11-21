@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { sql } from "../../../config/database.js";
+import { removeMember } from "./group-char-query.js";
 
 const createGroupChat = async (
   req: Request,
@@ -101,4 +102,86 @@ const getGroupList = async (
   }
 };
 
-export { createGroupChat, getGroupList };
+const deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { user_id } = req.body;
+    const { group_id } = req.params;
+
+    const [isOwner] = (await sql`
+    select 
+    is_owner
+    FROM group_members 
+    WHERE g_id = ${group_id} AND user_id = ${user_id}`) as {
+      is_owner: boolean;
+    }[];
+    if (!isOwner) {
+      res.status(401).json({
+        ok: false,
+        msg: "you are not be able to delete this group",
+        data: [],
+      });
+    }
+
+    // remove member
+    await removeMember(Number(group_id));
+
+    await sql`
+    DELETE FROM groups 
+    WHERE g_id = ${group_id}
+    `;
+
+    res.status(202).json({ ok: true, msg: "Delect success", data: [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addMember = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { user_id } = req.body;
+    const { group_id, user_id_to_member } = req.params;
+
+    const [isOwner] = (await sql`
+    select 
+    is_owner
+    FROM group_members 
+    WHERE g_id = ${group_id} AND user_id = ${user_id}`) as {
+      is_owner: boolean;
+    }[];
+    if (!isOwner) {
+      res.status(401).json({
+        ok: false,
+        msg: "you are not be able to delete this group",
+        data: [],
+      });
+    }
+
+    // to user from user_id_to_member that it actually have this user in the database
+    const [findUser] = (await sql`
+    select 
+    user_id 
+    from users 
+    where user_id = ${Number(user_id_to_member)}
+    `) as [{ user_id: number }];
+    if (!findUser.user_id) {
+      return res
+        .status(400)
+        .json({ ok: false, msg: "user is not exit", data: [] });
+    }
+
+    await sql`
+    INSERT INTO group_members (g_id, user_id ,is_owner) 
+    VALUES (
+    ${group_id},
+    ${user_id_to_member},
+    ${false}
+    )
+    `;
+
+    res.status(201).json({ ok: true, msg: "add member success", data: [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { createGroupChat, getGroupList, deleteGroup, addMember };

@@ -19,4 +19,24 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { getUserData };
+const searchUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { search } = req.body;
+
+    const resultSearch = (await sql`
+    SELECT
+    user_id,
+    user_name
+    FROM users 
+    WHERE LOWER(user_name) LIKE '%' || LOWER(${search}) || '%'
+    `) as { user_id: number; user_name: string }[];
+
+    res
+      .status(200)
+      .json({ ok: true, msg: "Search success", data: resultSearch });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getUserData, searchUser };
