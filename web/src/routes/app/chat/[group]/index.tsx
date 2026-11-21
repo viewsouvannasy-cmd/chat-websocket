@@ -1,12 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Header } from "../../../../components/app/Header";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import SipnnerLoad from "../../../../components/load-state/SipnnerLoad";
+
 import {
   useGetGroupList,
   useCreateGroupChat,
+  useDeleteGroup,
 } from "../../../../api/chat/group-chat/group-chat";
+import type { Group } from "../../../../types/response";
 
 export const Route = createFileRoute("/app/chat/group/")({
   component: RouteComponent,
@@ -15,18 +18,38 @@ export const Route = createFileRoute("/app/chat/group/")({
 function RouteComponent() {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
   const [inputName, setInputName] = useState("");
+  const navigate = useNavigate();
 
   const { data } = useGetGroupList();
 
-  const { mutate, isPending } = useCreateGroupChat();
+  const [localOverride, setLocalOverride] = useState<Group[] | undefined>();
+
+  const groupData = useMemo(
+    () => localOverride ?? data?.data,
+    [localOverride, data?.data],
+  );
+
+  const { mutate: createGroup, isPending: pendingCreate } =
+    useCreateGroupChat();
+  const { mutate: deleteGroup } = useDeleteGroup();
 
   const handleCreateGroupChat = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    mutate(
+    createGroup(
       { group_name: inputName },
-      { onSuccess: () => setIsOpenPopup(false) },
+      {
+        onSuccess: () => {
+          setIsOpenPopup(false);
+          setInputName("");
+        },
+      },
     );
+  };
+
+  const handleDeleteGroupChat = (g_id: number) => {
+    setLocalOverride(groupData?.filter((item) => item.g_id !== g_id));
+    deleteGroup({ g_id });
   };
 
   return (
@@ -45,21 +68,40 @@ function RouteComponent() {
                 + Group
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {data?.data.map((item) => {
+            <div className="flex flex-col gap-3 sm:grid-cols-3">
+              {groupData?.map((item) => {
                 return (
                   <div
                     key={item.g_id}
+                    onClick={() =>
+                      navigate({
+                        to: "/app/chat/group/$group_id",
+                        params: { group_id: String(item.g_id) },
+                      })
+                    }
                     className="cursor-pointer border border-gray-400 p-3 transition-all duration-200 hover:shadow-lg hover:shadow-gray-200"
                   >
                     <div className="flex items-center justify-between">
                       <h1 className="font-medium">{item.group_name}</h1>
-                      {item.is_owner && (
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500">
-                          <p className="-mt-0.5 cursor-pointer text-xs text-white">
-                            x
+                      {item.is_owner ? (
+                        <button
+                          className="flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5"
+
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroupChat(item.g_id);
+                          }}
+                        >
+                          <p className="cursor-pointer text-xs text-white">
+                            delete
                           </p>
-                        </div>
+                        </button>
+                      ) : (
+                        <button className="flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5">
+                          <p className="cursor-pointer text-xs text-white">
+                            out
+                          </p>
+                        </button>
                       )}
                     </div>
                     <span className="text-sm text-gray-500">
@@ -103,9 +145,9 @@ function RouteComponent() {
             <button
               type="submit"
               className="flex cursor-pointer justify-center rounded-full bg-black p-2.5 text-white"
-              disabled={isPending}
+              disabled={pendingCreate}
             >
-              {isPending ? <SipnnerLoad /> : "+ Creaet"}
+              {pendingCreate ? <SipnnerLoad /> : "+ Creaet"}
             </button>
           </form>
         </div>

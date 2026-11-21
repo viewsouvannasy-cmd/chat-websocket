@@ -42,4 +42,20 @@ const createGroupChat = async (
   }
 };
 
-export { getGroupList, createGroupChat };
+const deleteGroup = async (
+  isRetry = false,
+  { g_id }: { g_id: number },
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken();
+    await axios.delete(`${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      deleteGroup(true, { g_id }),
+    );
+  }
+};
+
+export { getGroupList, createGroupChat, deleteGroup };
