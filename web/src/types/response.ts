@@ -45,3 +45,10 @@ export interface Group {
   is_owner: boolean;
   members: string[];
 }
+
+export interface Message {
+  user_id: number;
+  content: string;
+  create_at: Date;
+  user_name: string;
+}
