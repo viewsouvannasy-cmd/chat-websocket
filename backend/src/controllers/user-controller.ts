@@ -21,14 +21,20 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
 
 const searchUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search } = req.body;
+    const { group_id, search } = req.body;
 
     const resultSearch = (await sql`
     SELECT
     user_id,
     user_name
     FROM users 
-    WHERE LOWER(user_name) LIKE '%' || LOWER(${search}) || '%'
+    WHERE LOWER(user_name) LIKE '%' || LOWER(${search}) || '%' 
+      AND user_id NOT IN (
+                SELECT 
+                user_id 
+                FROM group_members 
+                WHERE g_id = ${group_id}
+                )
     `) as { user_id: number; user_name: string }[];
 
     res

@@ -58,4 +58,24 @@ const deleteGroup = async (
   }
 };
 
-export { getGroupList, createGroupChat, deleteGroup };
+const addMember = async (
+  isRetry = false,
+  { g_id, user_id_to_member }: { g_id: number; user_id_to_member: number },
+): Promise<{ g_id: number }> => {
+  try {
+    const accessToken = getAccessToken();
+    await axios.post(
+      `${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}/member/add/${user_id_to_member}`,
+      {},
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    return { g_id };
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      addMember(true, { g_id, user_id_to_member }),
+    );
+  }
+};
+
+export { getGroupList, createGroupChat, deleteGroup, addMember };
