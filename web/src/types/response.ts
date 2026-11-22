@@ -18,6 +18,13 @@ export interface User extends BaseResponse {
   ];
 }
 
+export interface SearchUser extends BaseResponse {
+  data: {
+    user_id: number;
+    user_name: string;
+  }[];
+}
+
 export interface WroldChat extends BaseResponse {
   data: {
     wc_id: number;
