@@ -35,7 +35,7 @@ export interface WroldChat extends BaseResponse {
   }[];
 }
 
-export interface GroupChat extends BaseResponse {
+export interface GroupList extends BaseResponse {
   data: Group[];
 }
 
@@ -44,6 +44,22 @@ export interface Group {
   group_name: string;
   is_owner: boolean;
   members: string[];
+}
+
+export interface GroupDetail extends BaseResponse {
+  data: {
+    group_name: string;
+    user_name: string;
+  }[];
+}
+
+export interface GroupChat extends BaseResponse {
+  data: [
+    {
+      user_member_id: number;
+      chats: Message[];
+    },
+  ];
 }
 
 export interface Message {

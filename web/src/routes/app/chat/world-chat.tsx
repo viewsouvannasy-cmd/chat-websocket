@@ -9,6 +9,7 @@ import {
   useSendWorldChat,
 } from "../../../api/chat/world-chat/world-chat";
 import { InputMessage } from "../../../components/app/chat/InputMessage";
+import type { Message } from "../../../types/response";
 
 export const Route = createFileRoute("/app/chat/world-chat")({
   component: RouteComponent,
@@ -19,14 +20,7 @@ function RouteComponent() {
 
   const { data: userData } = useGetUserData();
   const { data: chatData } = useGetWorldChat();
-  const [localMessage, setLocalMessage] = useState<
-    {
-      user_id: number;
-      content: string;
-      create_at: Date;
-      user_name: string;
-    }[]
-  >([]);
+  const [localMessage, setLocalMessage] = useState<Message[]>([]);
 
   const dataChatList = useMemo(
     () => [...(chatData?.data ?? []), ...localMessage],

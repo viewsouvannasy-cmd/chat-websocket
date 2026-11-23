@@ -211,6 +211,32 @@ const sendMessageGroupChat = async (
   }
 };
 
+const getGroupDetail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { g_id } = req.params;
+
+    const result = await sql`
+    SELECT 
+    g.group_name,
+    u.user_name
+    FROM groups as g
+      INNER join group_members as gm 
+      on g.g_id = gm.g_id 
+      INNER join users as u
+      on gm.user_id = u.user_id
+    where g.g_id = ${g_id}
+  `;
+
+    res.status(200).json({ ok: true, msg: "success", data: result });
+  } catch (error) {
+    next(next);
+  }
+};
+
 const getGroupChat = async (
   req: Request,
   res: Response,
@@ -229,12 +255,16 @@ const getGroupChat = async (
 
     const result = (await sql`
     SELECT 
-    gc_id,
-    g_id,
-    gm_id,
-    content
-    FROM group_chats 
-    WHERE g_id = ${g_id}
+    u.user_id,
+    gc.content,
+    gc.create_at,
+    u.user_name
+    FROM group_chats as gc
+    INNER join group_members as gm
+      on gc.gm_id =  gm.gm_id
+    inner join users as u 
+     on gm.user_id = u.user_id
+    WHERE gc.g_id = ${g_id}
     `) as { gc_id: number; gm_id: number; content: string }[];
 
     res.status(200).json({
@@ -242,7 +272,7 @@ const getGroupChat = async (
       msg: "Success",
       data: [
         {
-          user_member_id: userMemberId,
+          user_member_id: userMemberId.gm_id,
           chats: result,
         },
       ],
@@ -258,5 +288,6 @@ export {
   deleteGroup,
   addMember,
   sendMessageGroupChat,
+  getGroupDetail,
   getGroupChat,
 };
