@@ -184,4 +184,79 @@ const addMember = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createGroupChat, getGroupList, deleteGroup, addMember };
+// ================= chat  ===================
+
+const sendMessageGroupChat = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { g_id, gm_id } = req.params;
+    const { content } = req.body;
+
+    const message = (await sql`
+    INSERT INTO group_chats (g_id, gm_id, content)
+    VALUES (
+    ${g_id},
+    ${gm_id},
+    ${content}
+    )
+    RETURNING gc_id , g_id , gm_id , content
+  `) as { gc_id: number; g_id: number; gm_id: number; content: string }[];
+
+    res.status(202).json({ ok: true, msg: "seed message success", data: [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getGroupChat = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { g_id } = req.params;
+    const { user_id } = req.body;
+
+    const [userMemberId] = (await sql`
+    select 
+    gm_id 
+    from group_members 
+    where g_id = ${g_id} AND user_id = ${user_id}
+    `) as { gm_id: number }[];
+
+    const result = (await sql`
+    SELECT 
+    gc_id,
+    g_id,
+    gm_id,
+    content
+    FROM group_chats 
+    WHERE g_id = ${g_id}
+    `) as { gc_id: number; gm_id: number; content: string }[];
+
+    res.status(200).json({
+      ok: true,
+      msg: "Success",
+      data: [
+        {
+          user_member_id: userMemberId,
+          chats: result,
+        },
+      ],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  createGroupChat,
+  getGroupList,
+  deleteGroup,
+  addMember,
+  sendMessageGroupChat,
+  getGroupChat,
+};

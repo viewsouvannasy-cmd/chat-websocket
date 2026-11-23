@@ -3,6 +3,7 @@ import { IconArrow } from "../../../../components/icon/IconArrow";
 import { useState } from "react";
 
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
+import { InputMessage } from "../../../../components/app/chat/InputMessage";
 export const Route = createFileRoute("/app/chat/group/$group_id")({
   component: RouteComponent,
 });
@@ -10,6 +11,8 @@ export const Route = createFileRoute("/app/chat/group/$group_id")({
 function RouteComponent() {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
   const { group_id } = Route.useParams();
+
+  const [inputMessage, setInputMessage] = useState("");
 
   return (
     <>
@@ -21,7 +24,7 @@ function RouteComponent() {
           >
             <IconArrow color="white" strokeWidth={1.5} size={18} />
           </Link>
-          <div className="w-full max-w-100">
+          <div className="w-full max-w-140">
             <p className="-mb-1 font-semibold">Group name</p>
             <span className="text-sm text-gray-500">members: view</span>
           </div>
@@ -33,6 +36,12 @@ function RouteComponent() {
             member
           </button>
         </div>
+
+        <InputMessage
+          inputMessage={inputMessage}
+          setInputMessage={setInputMessage}
+          func={() => console.log(inputMessage)}
+        />
       </div>
 
       {isOpenPopup && (
