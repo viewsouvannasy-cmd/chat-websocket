@@ -9,7 +9,7 @@ import {
   useGetGroupDetail,
 } from "../../../../api/chat/group-chat/group-chat";
 import { ChatSection } from "../../../../components/app/chat/ChatSection";
-import type { Message } from "../../../../types/response";
+
 export const Route = createFileRoute("/app/chat/group/$group_id")({
   component: RouteComponent,
 });
@@ -23,11 +23,9 @@ function RouteComponent() {
   const { data: groupDetail } = useGetGroupDetail(Number(group_id));
   const { data: groupChatData } = useGetGroupChat(Number(group_id));
 
-  const [localMessage, setLocalMessage] = useState<Message[]>([]);
-
   const dataGroupChatList = useMemo(
-    () => [...(groupChatData?.data[0].chats ?? []), ...localMessage],
-    [groupChatData, localMessage],
+    () => [...(groupChatData?.data[0].chats ?? [])],
+    [groupChatData],
   );
 
   return (

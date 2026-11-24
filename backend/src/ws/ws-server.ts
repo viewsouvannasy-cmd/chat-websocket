@@ -2,26 +2,62 @@ import { WebSocket, WebSocketServer } from "ws";
 
 import { Server } from "http";
 
-import type { WroldChat } from "../types/chat.js";
+import type { Message } from "../types/chat.js";
 
 let wss: WebSocketServer;
 
 interface ClientSocket extends WebSocket {
   isAlive: boolean;
+  userId: number;
+  rooms: Set<string>;
 }
 
-export function sendMessgae(payload: WroldChat) {
-  broadcast(wss, payload);
+const rooms = new Map<string, Set<ClientSocket>>();
+
+export function sendMessgae(roomId: string, payload: Message) {
+  if (!wss) return;
+  payload;
+
+  broadcastToRoom(roomId, payload);
 }
 
-function broadcast(wss: WebSocketServer, payload: WroldChat) {
-  for (const client of wss.clients) {
-    const c = client as ClientSocket;
-    if (c.readyState !== WebSocket.OPEN) {
+function broadcastToRoom(roomId: string, payload: Message) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  for (const client of room) {
+    if (
+      client.readyState !== WebSocket.OPEN ||
+      client.userId === payload.user_id
+    ) {
       continue;
     }
 
-    client.send(JSON.stringify({ ...payload, type: "world-chat" }));
+    client.send(JSON.stringify(payload));
+  }
+}
+
+// ========== handle room ========== //
+function joinRoom(socket: ClientSocket, roomId: string) {
+  if (!rooms.has(roomId)) {
+    rooms.set(roomId, new Set());
+  }
+  socket.send(JSON.stringify(`// ==== ${roomId} ==== //`));
+  rooms.get(roomId)?.add(socket);
+  socket.rooms.add(roomId);
+}
+
+function leaveRoom(socket: ClientSocket, roomId: string) {
+  const room = rooms.get(roomId);
+  if (!room) {
+    return;
+  }
+
+  room.delete(socket);
+  socket.rooms.delete(roomId);
+
+  if (room.size === 0) {
+    rooms.delete(roomId);
   }
 }
 
@@ -34,6 +70,34 @@ export function attachWebSocketServer(server: Server) {
 
   wss.on("connection", (socket: ClientSocket) => {
     socket.isAlive = true;
+    socket.rooms = new Set();
+
+    socket.on("message", (raw) => {
+      let msg: any;
+
+      try {
+        msg = JSON.parse(raw.toString());
+      } catch (error) {
+        socket.send(JSON.stringify({ ok: false, msg: "Invalid Json" }));
+        return;
+      }
+
+      if (msg.type === "join-room") {
+        if (typeof msg.roomId !== "string") {
+          return;
+        }
+        joinRoom(socket, msg.roomId);
+        return;
+      }
+
+      if (msg.type === "leave-room") {
+        if (typeof msg.roomId !== "string") {
+          return;
+        }
+        leaveRoom(socket, msg.roomId);
+        return;
+      }
+    });
 
     socket.on("pong", () => {
       socket.isAlive = true;

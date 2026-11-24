@@ -56,9 +56,12 @@ function RouteComponent() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
+      if (!data.content) {
+        console.log(data);
+        return;
+      }
 
       if (data.user_id === userData?.data[0].user_id) {
-        console.log("log");
         return;
       }
 
@@ -71,6 +74,18 @@ function RouteComponent() {
       socket.removeEventListener("message", handleMessage);
     };
   }, [userData, localMessage]);
+
+  useEffect(() => {
+    const join = () =>
+      socket.send(JSON.stringify({ type: "join-room", roomId: "world-chat" }));
+
+    join();
+
+    return () => {
+      socket.send(JSON.stringify({ type: "leave-room", roomId: "world-chat" }));
+      socket.removeEventListener("open", join);
+    };
+  }, []);
 
   const currentUserId = userData?.data[0].user_id;
 
