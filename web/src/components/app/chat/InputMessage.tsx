@@ -22,7 +22,7 @@ export function InputMessage({
           onKeyDown={(e) => {
             if (e.nativeEvent.isComposing) return;
             if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault(); // ยกเลิกการขึ้นบรรทัดใหม่
+              e.preventDefault();
               func();
             }
           }}

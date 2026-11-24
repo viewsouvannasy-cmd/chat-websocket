@@ -3,6 +3,8 @@ import {
   addMember,
   createGroupChat,
   deleteGroup,
+  getGroupChat,
+  getGroupDetail,
   getGroupList,
 } from "./group-chat-func";
 
@@ -45,5 +47,21 @@ export const useAddMember = () => {
         queryKey: ["group-chat", data.g_id],
       });
     },
+  });
+};
+
+// ======== chat ============
+
+export const useGetGroupDetail = (g_id: number) => {
+  return useQuery({
+    queryFn: () => getGroupDetail(false, { g_id }),
+    queryKey: ["group-chat-detail", g_id],
+  });
+};
+
+export const useGetGroupChat = (g_id: number) => {
+  return useQuery({
+    queryFn: () => getGroupChat(false, { g_id }),
+    queryKey: ["group-chat", g_id],
   });
 };

@@ -6,12 +6,16 @@ import { getAccessToken } from "../../../store/token/accessToken";
 
 import { handleAccessTokenError } from "../../../utils/handleError";
 
-import type { GroupChat } from "../../../types/response";
+import type {
+  GroupChat,
+  GroupDetail,
+  GroupList,
+} from "../../../types/response";
 
-const getGroupList = async (isRetry = false): Promise<GroupChat> => {
+const getGroupList = async (isRetry = false): Promise<GroupList> => {
   try {
     const accessToken = getAccessToken();
-    const res = await axios.get<GroupChat>(
+    const res = await axios.get<GroupList>(
       `${getEnv("VITE_SERVER_HOST")}/group-chat`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -78,4 +82,49 @@ const addMember = async (
   }
 };
 
-export { getGroupList, createGroupChat, deleteGroup, addMember };
+const getGroupDetail = async (
+  isRetry = false,
+  { g_id }: { g_id: number },
+): Promise<GroupDetail> => {
+  try {
+    const accessToken = getAccessToken();
+    const res = await axios.get(
+      `${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}/detail`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    return res.data;
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      getGroupDetail(true, { g_id }),
+    );
+  }
+};
+
+const getGroupChat = async (
+  isRetry = false,
+  { g_id }: { g_id: number },
+): Promise<GroupChat> => {
+  try {
+    const accessToken = getAccessToken();
+    const res = await axios.get<GroupChat>(
+      `${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}/chat`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    return res.data;
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      getGroupChat(true, { g_id }),
+    );
+  }
+};
+
+export {
+  getGroupList,
+  createGroupChat,
+  deleteGroup,
+  addMember,
+  getGroupDetail,
+  getGroupChat,
+};

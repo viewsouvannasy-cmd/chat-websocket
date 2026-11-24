@@ -2,7 +2,7 @@ import { sql } from "../../../config/database.js";
 import { sendMessgae } from "../../../ws/ws-server.js";
 import { Request, Response, NextFunction } from "express";
 
-import type { WroldChat } from "../../../types/chat.js";
+import type { Message } from "../../../types/chat.js";
 
 const getWorldChat = async (
   req: Request,
@@ -56,8 +56,8 @@ const sendWorldChat = async (
     `;
 
     result[0].user_name = user.user_name;
-    const data = result[0] as WroldChat;
-    sendMessgae(data);
+    const data = result[0] as Message;
+    sendMessgae("world-chat", data);
 
     res
       .status(201)

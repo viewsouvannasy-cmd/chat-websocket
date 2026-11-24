@@ -1,8 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { IconArrow } from "../../../../components/icon/IconArrow";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
+import { InputMessage } from "../../../../components/app/chat/InputMessage";
+import {
+  useGetGroupChat,
+  useGetGroupDetail,
+} from "../../../../api/chat/group-chat/group-chat";
+import { ChatSection } from "../../../../components/app/chat/ChatSection";
+
 export const Route = createFileRoute("/app/chat/group/$group_id")({
   component: RouteComponent,
 });
@@ -10,6 +17,16 @@ export const Route = createFileRoute("/app/chat/group/$group_id")({
 function RouteComponent() {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
   const { group_id } = Route.useParams();
+
+  const [inputMessage, setInputMessage] = useState("");
+
+  const { data: groupDetail } = useGetGroupDetail(Number(group_id));
+  const { data: groupChatData } = useGetGroupChat(Number(group_id));
+
+  const dataGroupChatList = useMemo(
+    () => [...(groupChatData?.data[0].chats ?? [])],
+    [groupChatData],
+  );
 
   return (
     <>
@@ -21,9 +38,14 @@ function RouteComponent() {
           >
             <IconArrow color="white" strokeWidth={1.5} size={18} />
           </Link>
-          <div className="w-full max-w-100">
-            <p className="-mb-1 font-semibold">Group name</p>
-            <span className="text-sm text-gray-500">members: view</span>
+          <div className="w-full max-w-125">
+            <p className="-mb-1 font-semibold">
+              {groupDetail?.data?.[0].group_name}
+            </p>
+            <span className="text-sm text-gray-500">
+              members:{" "}
+              {groupDetail?.data.map((item) => item.user_name).join(" ,")}
+            </span>
           </div>
           <button
             onClick={() => setIsOpenPopup(true)}
@@ -33,6 +55,17 @@ function RouteComponent() {
             member
           </button>
         </div>
+
+        <ChatSection
+          currentUserId={groupChatData?.data[0].user_member_id}
+          data={dataGroupChatList}
+        />
+
+        <InputMessage
+          inputMessage={inputMessage}
+          setInputMessage={setInputMessage}
+          func={() => console.log(inputMessage)}
+        />
       </div>
 
       {isOpenPopup && (
