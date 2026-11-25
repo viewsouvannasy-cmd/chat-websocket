@@ -57,7 +57,6 @@ function RouteComponent() {
     const handleMessage = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       if (!data.content) {
-        console.log(data);
         return;
       }
 

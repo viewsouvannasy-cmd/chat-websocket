@@ -8,7 +8,6 @@ let wss: WebSocketServer;
 
 interface ClientSocket extends WebSocket {
   isAlive: boolean;
-  userId: number;
   rooms: Set<string>;
 }
 
@@ -26,10 +25,7 @@ function broadcastToRoom(roomId: string, payload: Message) {
   if (!room) return;
 
   for (const client of room) {
-    if (
-      client.readyState !== WebSocket.OPEN ||
-      client.userId === payload.user_id
-    ) {
+    if (client.readyState !== WebSocket.OPEN) {
       continue;
     }
 
@@ -42,7 +38,6 @@ function joinRoom(socket: ClientSocket, roomId: string) {
   if (!rooms.has(roomId)) {
     rooms.set(roomId, new Set());
   }
-  socket.send(JSON.stringify(`// ==== ${roomId} ==== //`));
   rooms.get(roomId)?.add(socket);
   socket.rooms.add(roomId);
 }
