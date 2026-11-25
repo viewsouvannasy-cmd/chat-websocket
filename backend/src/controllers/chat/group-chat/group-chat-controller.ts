@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { sql } from "../../../config/database.js";
-import { removeMember } from "./group-char-query.js";
+
+import { sendMessgae } from "../../../ws/ws-server.js";
+import { Message } from "../../../types/chat.js";
 
 const createGroupChat = async (
   req: Request,
@@ -123,7 +125,15 @@ const deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     // remove member
-    await removeMember(Number(group_id));
+    await sql`
+    delete from group_members
+    where g_id = ${group_id}
+    `;
+
+    await sql`
+    DELETE from group_chats 
+    where g_id = ${group_id}
+    `;
 
     await sql`
     DELETE FROM groups 
@@ -184,6 +194,39 @@ const addMember = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const outOffGroup = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { user_id } = req.body;
+    const { g_id } = req.params;
+
+    // check user in the group
+    const [result] = (await sql`
+    select 
+    gm_id
+    from group_members 
+    where g_id = ${g_id} AND user_id = ${user_id}
+    `) as { gm_id: number }[];
+
+    if (!result) {
+      return res.status(401).json({ ok: false, msg: "tou are not a member" });
+    }
+
+    await sql`
+    delete from group_chats 
+    where gm_id = ${result.gm_id}
+    `;
+
+    await sql`
+    delete from group_members 
+    where g_id = ${g_id} AND user_id = ${user_id}
+    `;
+
+    res.status(202).json({ ok: true, msg: "exist the group success" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ================= chat  ===================
 
 const sendMessageGroupChat = async (
@@ -193,17 +236,34 @@ const sendMessageGroupChat = async (
 ) => {
   try {
     const { g_id, gm_id } = req.params;
-    const { content } = req.body;
+    const { user_id, content } = req.body;
 
-    const message = (await sql`
+    // save message
+    const [message] = (await sql`
     INSERT INTO group_chats (g_id, gm_id, content)
     VALUES (
     ${g_id},
     ${gm_id},
     ${content}
     )
-    RETURNING gc_id , g_id , gm_id , content
-  `) as { gc_id: number; g_id: number; gm_id: number; content: string }[];
+    RETURNING  content, create_at
+  `) as { content: string; create_at: Date }[];
+
+    const [user] = (await sql`
+    SELECT
+      user_id,
+      user_name
+    FROM users 
+    WHERE user_id = ${user_id}
+    `) as { user_id: number; user_name: string }[];
+
+    const result: Message = {
+      user_id: user.user_id,
+      content: message.content,
+      create_at: message.create_at,
+      user_name: user.user_name,
+    };
+    sendMessgae(`group:${g_id}`, result);
 
     res.status(202).json({ ok: true, msg: "seed message success", data: [] });
   } catch (error) {
@@ -247,9 +307,9 @@ const getGroupChat = async (
     const { user_id } = req.body;
 
     const [userMemberId] = (await sql`
-    select 
-    gm_id 
-    from group_members 
+    select
+    gm_id
+    from group_members
     where g_id = ${g_id} AND user_id = ${user_id}
     `) as { gm_id: number }[];
 
@@ -272,6 +332,7 @@ const getGroupChat = async (
       msg: "Success",
       data: [
         {
+          user_id: user_id,
           user_member_id: userMemberId.gm_id,
           chats: result,
         },
@@ -290,4 +351,5 @@ export {
   sendMessageGroupChat,
   getGroupDetail,
   getGroupChat,
+  outOffGroup,
 };

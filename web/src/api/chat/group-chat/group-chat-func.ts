@@ -82,6 +82,24 @@ const addMember = async (
   }
 };
 
+const outOffGroup = async (
+  isRetry = false,
+  { g_id }: { g_id: number },
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken();
+    await axios.post(
+      `${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}/out`,
+      {},
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      outOffGroup(true, { g_id }),
+    );
+  }
+};
+
 const getGroupDetail = async (
   isRetry = false,
   { g_id }: { g_id: number },
@@ -120,11 +138,43 @@ const getGroupChat = async (
   }
 };
 
+const sendMessageGroup = async (
+  isRetry = false,
+  {
+    g_id,
+    gm_id,
+    content,
+  }: {
+    g_id: number;
+    gm_id: number;
+    content: string;
+  },
+): Promise<void> => {
+  try {
+    const accessToken = getAccessToken();
+    await axios.post(
+      `${getEnv("VITE_SERVER_HOST")}/group-chat/${g_id}/${gm_id}/send`,
+      {
+        content,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+  } catch (error) {
+    return await handleAccessTokenError(error, isRetry, () =>
+      sendMessageGroup(true, { g_id, gm_id, content }),
+    );
+  }
+};
+
 export {
   getGroupList,
   createGroupChat,
   deleteGroup,
   addMember,
+  outOffGroup,
   getGroupDetail,
   getGroupChat,
+  sendMessageGroup,
 };

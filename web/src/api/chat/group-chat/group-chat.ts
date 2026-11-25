@@ -6,6 +6,8 @@ import {
   getGroupChat,
   getGroupDetail,
   getGroupList,
+  outOffGroup,
+  sendMessageGroup,
 } from "./group-chat-func";
 
 import { queryClient } from "../../../main";
@@ -44,9 +46,15 @@ export const useAddMember = () => {
     mutationFn: (variable) => addMember(false, variable),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ["group-chat", data.g_id],
+        queryKey: ["group-chat-detail", data.g_id],
       });
     },
+  });
+};
+
+export const useOutOffGroup = () => {
+  return useMutation<void, void, { g_id: number }>({
+    mutationFn: (variable) => outOffGroup(false, variable),
   });
 };
 
@@ -63,5 +71,15 @@ export const useGetGroupChat = (g_id: number) => {
   return useQuery({
     queryFn: () => getGroupChat(false, { g_id }),
     queryKey: ["group-chat", g_id],
+  });
+};
+
+export const useSendMessageGroup = () => {
+  return useMutation<
+    void,
+    void,
+    { g_id: number; gm_id: number; content: string }
+  >({
+    mutationFn: (variable) => sendMessageGroup(false, variable),
   });
 };

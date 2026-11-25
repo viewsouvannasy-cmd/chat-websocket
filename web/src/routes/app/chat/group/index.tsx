@@ -8,6 +8,7 @@ import {
   useGetGroupList,
   useCreateGroupChat,
   useDeleteGroup,
+  useOutOffGroup,
 } from "../../../../api/chat/group-chat/group-chat";
 import type { Group } from "../../../../types/response";
 
@@ -32,6 +33,7 @@ function RouteComponent() {
   const { mutate: createGroup, isPending: pendingCreate } =
     useCreateGroupChat();
   const { mutate: deleteGroup } = useDeleteGroup();
+  const { mutate: outGroup } = useOutOffGroup();
 
   const handleCreateGroupChat = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,6 +52,11 @@ function RouteComponent() {
   const handleDeleteGroupChat = (g_id: number) => {
     setLocalOverride(groupData?.filter((item) => item.g_id !== g_id));
     deleteGroup({ g_id });
+  };
+
+  const handleOutOffGroup = (g_id: number) => {
+    setLocalOverride(groupData?.filter((item) => item.g_id !== g_id));
+    outGroup({ g_id });
   };
 
   return (
@@ -97,7 +104,13 @@ function RouteComponent() {
                           </p>
                         </button>
                       ) : (
-                        <button className="flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOutOffGroup(item.g_id);
+                          }}
+                          className="flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5"
+                        >
                           <p className="cursor-pointer text-xs text-white">
                             out
                           </p>

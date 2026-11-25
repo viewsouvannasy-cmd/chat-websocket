@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { IconArrow } from "../../../../components/icon/IconArrow";
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
 import { InputMessage } from "../../../../components/app/chat/InputMessage";
 import {
   useGetGroupChat,
   useGetGroupDetail,
+  useSendMessageGroup,
 } from "../../../../api/chat/group-chat/group-chat";
 import { ChatSection } from "../../../../components/app/chat/ChatSection";
+import { socket } from "../../../../main";
+import type { Message } from "../../../../types/response";
+import { useGetUserData } from "../../../../api/user/user";
 
 export const Route = createFileRoute("/app/chat/group/$group_id")({
   component: RouteComponent,
@@ -20,13 +25,77 @@ function RouteComponent() {
 
   const [inputMessage, setInputMessage] = useState("");
 
+  const { mutate } = useSendMessageGroup();
+
+  const [localMessage, setLocalMessage] = useState<Message[]>([]);
+
   const { data: groupDetail } = useGetGroupDetail(Number(group_id));
   const { data: groupChatData } = useGetGroupChat(Number(group_id));
+  const { data: userData } = useGetUserData();
 
   const dataGroupChatList = useMemo(
-    () => [...(groupChatData?.data[0].chats ?? [])],
-    [groupChatData],
+    () => [...(groupChatData?.data[0].chats ?? []), ...localMessage],
+    [groupChatData, localMessage],
   );
+
+  const handleSendMessageGroup = () => {
+    if (inputMessage.length === 0) {
+      return;
+    }
+
+    if (!userData || !groupChatData) {
+      return;
+    }
+
+    setLocalMessage((prev) => [
+      ...prev,
+      {
+        user_id: userData.data[0].user_id,
+        content: inputMessage,
+        create_at: new Date(),
+        user_name: userData.data[0].user_name,
+      },
+    ]);
+
+    mutate({
+      g_id: Number(group_id),
+      gm_id: groupChatData?.data[0].user_member_id,
+      content: inputMessage,
+    });
+
+    setInputMessage("");
+  };
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.user_id === userData?.data[0].user_id) {
+        return;
+      }
+
+      setLocalMessage((prev) => [...prev, data]);
+    };
+
+    socket.addEventListener("message", handleMessage);
+
+    return () => {
+      socket.removeEventListener("message", handleMessage);
+    };
+  }, [userData]);
+
+  useEffect(() => {
+    const join = () =>
+      socket.send(
+        JSON.stringify({ type: "join-room", roomId: `group:${group_id}` }),
+      );
+
+    join();
+
+    return () => {
+      socket.send(JSON.stringify({ type: "leave-room", roomId: "world-chat" }));
+      socket.removeEventListener("open", join);
+    };
+  }, [group_id]);
 
   return (
     <>
@@ -57,14 +126,14 @@ function RouteComponent() {
         </div>
 
         <ChatSection
-          currentUserId={groupChatData?.data[0].user_member_id}
+          currentUserId={userData?.data[0].user_id}
           data={dataGroupChatList}
         />
 
         <InputMessage
           inputMessage={inputMessage}
           setInputMessage={setInputMessage}
-          func={() => console.log(inputMessage)}
+          func={handleSendMessageGroup}
         />
       </div>
 

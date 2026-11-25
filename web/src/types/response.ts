@@ -56,6 +56,7 @@ export interface GroupDetail extends BaseResponse {
 export interface GroupChat extends BaseResponse {
   data: [
     {
+      user_id: number;
       user_member_id: number;
       chats: Message[];
     },
