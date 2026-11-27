@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { useDebounce } from "../../hook/useDebounce";
 import SipnnerLoad from "../load-state/SipnnerLoad";
-import { searchUserForGroup } from "../../api/chat/group-chat/group-chat-func";
+
 import { useQuery } from "@tanstack/react-query";
 
 interface PopupSearchUserProps {
   setIsOpenPopup: (param: boolean) => void;
-  group_id: number;
+  queryKey: string[];
+  queryFn: (
+    search: string,
+  ) => Promise<{ data: { user_id: number; user_name: string }[] }>;
   func: (user_id: number) => void;
   isPending: boolean;
 }
 
 export function PopupSearchUser({
   setIsOpenPopup,
-  group_id,
+  queryKey,
+  queryFn,
   func,
   isPending,
 }: PopupSearchUserProps) {
@@ -22,9 +26,8 @@ export function PopupSearchUser({
   const debouncedSearch = useDebounce(inputSearch, 500);
 
   const { data: resultSearch = [], isFetching } = useQuery({
-    queryKey: ["search-user", debouncedSearch],
-    queryFn: () =>
-      searchUserForGroup(true, { search: debouncedSearch, group_id }),
+    queryKey: [...queryKey, debouncedSearch],
+    queryFn: () => queryFn(debouncedSearch),
     enabled: debouncedSearch.length > 0,
     select: (res) => res.data,
   });

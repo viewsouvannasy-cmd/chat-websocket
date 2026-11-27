@@ -15,6 +15,7 @@ import { ChatSection } from "../../../../components/app/chat/ChatSection";
 import { socket } from "../../../../main";
 import type { Message } from "../../../../types/response";
 import { useGetUserData } from "../../../../api/user/user";
+import { searchUserForGroup } from "../../../../api/chat/group-chat/group-chat-func";
 
 export const Route = createFileRoute("/app/chat/group/$group_id")({
   component: RouteComponent,
@@ -153,7 +154,10 @@ function RouteComponent() {
       {isOpenPopup && (
         <PopupSearchUser
           setIsOpenPopup={setIsOpenPopup}
-          group_id={Number(group_id)}
+          queryKey={["search-user", "group"]}
+          queryFn={(search) =>
+            searchUserForGroup(false, { search, group_id: Number(group_id) })
+          }
           func={handleAddMember}
           isPending={isPending}
         />

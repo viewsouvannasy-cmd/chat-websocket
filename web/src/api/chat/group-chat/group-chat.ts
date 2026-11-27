@@ -8,7 +8,6 @@ import {
   getGroupList,
   outOffGroup,
   sendMessageGroup,
-  searchUserForGroup,
 } from "./group-chat-func";
 
 import { queryClient } from "../../../main";
@@ -85,15 +84,15 @@ export const useSendMessageGroup = () => {
   });
 };
 
-export const useSearchUserForGroup = (
-  debouncedSearch: string,
-  group_id: number,
-) => {
-  return useQuery({
-    queryKey: ["search-user", debouncedSearch],
-    queryFn: () =>
-      searchUserForGroup(true, { search: debouncedSearch, group_id }),
-    enabled: debouncedSearch.length > 0,
-    select: (res) => res.data,
-  });
-};
+// export const useSearchUserForGroupOption = (
+//   debouncedSearch: string,
+//   group_id: number,
+// ) => {
+//   return queryOptions({
+//     queryKey: ["search-user", debouncedSearch],
+//     queryFn: () =>
+//       searchUserForGroup(true, { search: debouncedSearch, group_id }),
+//     enabled: debouncedSearch.length > 0,
+//     select: (res) => res.data,
+//   });
+// };
