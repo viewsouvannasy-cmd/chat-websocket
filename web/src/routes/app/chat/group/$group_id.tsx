@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
 import { InputMessage } from "../../../../components/app/chat/InputMessage";
 import {
+  useAddMember,
   useGetGroupChat,
   useGetGroupDetail,
   useSendMessageGroup,
@@ -64,6 +65,18 @@ function RouteComponent() {
     });
 
     setInputMessage("");
+  };
+
+  const { mutate: addMember, isPending } = useAddMember();
+
+  const handleAddMember = (user_id: number) => {
+    addMember(
+      {
+        g_id: Number(group_id),
+        user_id_to_member: user_id,
+      },
+      { onSuccess: () => setIsOpenPopup(false) },
+    );
   };
 
   useEffect(() => {
@@ -141,6 +154,8 @@ function RouteComponent() {
         <PopupSearchUser
           setIsOpenPopup={setIsOpenPopup}
           group_id={Number(group_id)}
+          func={handleAddMember}
+          isPending={isPending}
         />
       )}
     </>
