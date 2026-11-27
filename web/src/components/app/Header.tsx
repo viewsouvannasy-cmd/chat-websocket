@@ -28,7 +28,7 @@ export function Header({
           Group
         </Link>
         <Link
-          to="/app/chat/p2p-chat"
+          to="/app/chat/p2p"
 
           className={`cursor-pointer px-3 py-1 text-sm font-semibold ${section === "p2p-chat" ? "bg-black text-white" : "bg-transparent text-gray-400"} rounded-full`}
         >

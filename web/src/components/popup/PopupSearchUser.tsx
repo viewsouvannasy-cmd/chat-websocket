@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useDebounce } from "../../hook/useDebounce";
-import { useQuery } from "@tanstack/react-query";
-import { searchUser } from "../../api/user/user-func";
 import SipnnerLoad from "../load-state/SipnnerLoad";
-import { useAddMember } from "../../api/chat/group-chat/group-chat";
+import { searchUserForGroup } from "../../api/chat/group-chat/group-chat-func";
+import { useQuery } from "@tanstack/react-query";
 
 interface PopupSearchUserProps {
   setIsOpenPopup: (param: boolean) => void;
   group_id: number;
+  func: (user_id: number) => void;
+  isPending: boolean;
 }
 
 export function PopupSearchUser({
   setIsOpenPopup,
   group_id,
+  func,
+  isPending,
 }: PopupSearchUserProps) {
   const [inputSearch, setInputSearch] = useState("");
 
@@ -20,7 +23,8 @@ export function PopupSearchUser({
 
   const { data: resultSearch = [], isFetching } = useQuery({
     queryKey: ["search-user", debouncedSearch],
-    queryFn: () => searchUser(true, { search: debouncedSearch, group_id }),
+    queryFn: () =>
+      searchUserForGroup(true, { search: debouncedSearch, group_id }),
     enabled: debouncedSearch.length > 0,
     select: (res) => res.data,
   });
@@ -28,18 +32,6 @@ export function PopupSearchUser({
   const isDebouncing = inputSearch !== debouncedSearch;
   const isLoading = inputSearch.length > 0 && (isDebouncing || isFetching);
   const results = inputSearch.length === 0 ? [] : resultSearch;
-
-  const { mutate, isPending } = useAddMember();
-
-  const handleAddMember = (user_id: number) => {
-    mutate(
-      {
-        g_id: group_id,
-        user_id_to_member: user_id,
-      },
-      { onSuccess: () => setIsOpenPopup(false) },
-    );
-  };
 
   return (
     <div className="fixed top-0 right-0 bottom-0 left-0 flex items-center justify-center bg-black/30 p-3">
@@ -73,7 +65,7 @@ export function PopupSearchUser({
                   <p className="font-medium">{item.user_name}</p>
                   <button
                     disabled={isPending}
-                    onClick={() => handleAddMember(item.user_id)}
+                    onClick={() => func(item.user_id)}
                     className="cursor-pointer rounded-full bg-black px-2 py-0.5 text-sm text-white hover:opacity-60"
                   >
                     {isPending ? <SipnnerLoad size={4} /> : "+ add"}

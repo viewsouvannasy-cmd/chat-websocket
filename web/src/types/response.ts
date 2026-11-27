@@ -63,6 +63,18 @@ export interface GroupChat extends BaseResponse {
   ];
 }
 
+export interface P2PList extends BaseResponse {
+  data: {
+    pp_id: number;
+    u1: string;
+    u2: string;
+    opposite_user: "u1" | "u2";
+    user_create_content: "u1" | "u2";
+    last_content: string;
+    create_at: Date;
+  }[];
+}
+
 export interface Message {
   user_id: number;
   content: string;

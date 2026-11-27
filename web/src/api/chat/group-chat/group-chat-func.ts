@@ -10,6 +10,7 @@ import type {
   GroupChat,
   GroupDetail,
   GroupList,
+  SearchUser,
 } from "../../../types/response";
 
 const getGroupList = async (isRetry = false): Promise<GroupList> => {
@@ -168,6 +169,31 @@ const sendMessageGroup = async (
   }
 };
 
+const searchUserForGroup = async (
+  isRety = false,
+  { search, group_id }: { search: string; group_id: number },
+): Promise<SearchUser> => {
+  try {
+    const accessToken = getAccessToken();
+    const res = await axios.post<SearchUser>(
+      `${getEnv("VITE_SERVER_HOST")}/user/search`,
+      {
+        search,
+        group_id,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+
+    return res.data;
+  } catch (error) {
+    return await handleAccessTokenError(error, isRety, () =>
+      searchUserForGroup(true, { search, group_id }),
+    );
+  }
+};
+
 export {
   getGroupList,
   createGroupChat,
@@ -177,4 +203,5 @@ export {
   getGroupDetail,
   getGroupChat,
   sendMessageGroup,
+  searchUserForGroup,
 };
