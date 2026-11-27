@@ -37,7 +37,7 @@ const getP2PList = async (req: Request, res: Response, next: NextFunction) => {
             ppc.user_created,
         ROW_NUMBER() OVER (PARTITION BY pp.pp_id ORDER BY ppc.create_at DESC) AS rn
         FROM p2p AS pp
-        INNER JOIN p2p_chat AS ppc 
+        LEFT JOIN p2p_chat AS ppc 
             ON pp.pp_id = ppc.pp_id
         WHERE user1_id = ${user_id} or user2_id = ${user_id}
         )
@@ -121,4 +121,44 @@ const sendMessageP2P = async (
   }
 };
 
-export { createPToP, getP2PList, sendMessageP2P };
+const searchUserForP2P = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { user_id, search } = req.body;
+
+    // this include current user id
+    const ignoreUserId = (await sql`
+    SELECT
+      user1_id as user_id
+    FROM p2p
+    where user1_id = 22 or user2_id = ${user_id}
+    GROUP by user1_id
+      UNION ALL 
+    SELECT 
+      user2_id 
+    FROM p2p
+    where user1_id = 22 or user2_id = ${user_id}
+    GROUP by user2_id
+    `) as { user_id: number }[];
+
+    const ignoreClean = ignoreUserId.map((row) => row.user_id);
+
+    const results = (await sql`
+    select
+    user_id,
+    user_name
+    from users
+    where not (user_id = any(${ignoreClean}::int[])) 
+      and LOWER(user_name) LIKE '%' || LOWER(${search}) || '%' 
+    `) as { user_id: number; user_name: string }[];
+
+    res.status(200).json({ ok: true, msg: "Search success", data: results });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { createPToP, getP2PList, sendMessageP2P, searchUserForP2P };

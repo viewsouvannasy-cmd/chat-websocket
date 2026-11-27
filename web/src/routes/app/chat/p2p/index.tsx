@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "../../../../components/app/Header";
 import { useState } from "react";
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
-import { useGetP2PList } from "../../../../api/chat/p2p-chat/p2p-chat";
+import {
+  useCreateP2P,
+  useGetP2PList,
+} from "../../../../api/chat/p2p-chat/p2p-chat";
+import { searchUserForP2P } from "../../../../api/chat/p2p-chat/p2p-chat-func";
 
 export const Route = createFileRoute("/app/chat/p2p/")({
   component: RouteComponent,
@@ -15,6 +19,12 @@ function RouteComponent() {
 
   const p2pList = data?.data;
 
+  const { mutate, isPending } = useCreateP2P();
+  const handleCreateP2P = (user_id: number) => {
+    mutate({
+      user2_id: user_id,
+    });
+  };
   return (
     <>
       <div className="flex h-dvh w-dvw flex-col gap-4">
@@ -34,14 +44,19 @@ function RouteComponent() {
           <div className="flex w-full max-w-140 flex-col gap-3">
             {p2pList?.map((item) => {
               return (
-                <div className="w-full cursor-pointer border border-gray-400 p-3 hover:shadow-lg hover:shadow-gray-200">
+                <div
+                  key={item.pp_id}
+                  className="w-full cursor-pointer border border-gray-400 p-3 hover:shadow-lg hover:shadow-gray-200"
+                >
                   <p className="font-medium">{item[item?.opposite_user]}</p>
-                  <span className="text-sm text-gray-500">
-                    <span className="font-medium">
-                      {item[item?.user_create_content]}
+                  {item[item?.user_create_content] && (
+                    <span className="text-sm text-gray-500">
+                      <span className="font-medium">
+                        {item[item?.user_create_content]}
+                      </span>
+                      : {item.last_content}
                     </span>
-                    : {item.last_content}
-                  </span>
+                  )}
                 </div>
               );
             })}
@@ -52,9 +67,10 @@ function RouteComponent() {
       {isOpenPopup && (
         <PopupSearchUser
           setIsOpenPopup={setIsOpenPopup}
-          group_id={0}
-          func={() => console.log("d")}
-          isPending={false}
+          queryKey={["search-user", "p2p"]}
+          queryFn={(search) => searchUserForP2P(false, { search })}
+          func={handleCreateP2P}
+          isPending={isPending}
         />
       )}
     </>
