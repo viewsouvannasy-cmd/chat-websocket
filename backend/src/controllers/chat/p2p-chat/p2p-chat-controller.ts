@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { sql } from "../../../config/database.js";
 import { Message } from "../../../types/chat.js";
+import { sendMessgae } from "../../../ws/ws-server.js";
 
 const createPToP = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -46,14 +47,11 @@ const getP2PList = async (req: Request, res: Response, next: NextFunction) => {
             cte.pp_id,
             u1.user_name AS u1,
             u2.user_name AS u2,
+            cte.user_created,
             CASE 
                 WHEN cte.user1_id != ${user_id} THEN 'u1'
                 WHEN cte.user2_id != ${user_id} THEN 'u2'
             END AS opposite_user,
-            CASE 
-                WHEN cte.user_created = ${user_id} THEN 'u1'
-                WHEN cte.user_created != ${user_id} THEN 'u2'
-            END AS user_create_content,
             cte.content AS last_content,
             cte.create_at
         FROM cte_last_content As cte
@@ -114,6 +112,7 @@ const sendMessageP2P = async (
       content: content,
       create_at: result.create_at,
     };
+    sendMessgae(`p2p:${pp_id}`, message);
 
     res.status(201).json({ ok: true, msg: "Send success", data: [] });
   } catch (error) {
@@ -161,4 +160,75 @@ const searchUserForP2P = async (
   }
 };
 
-export { createPToP, getP2PList, sendMessageP2P, searchUserForP2P };
+const getP2PChatData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { pp_id } = req.params;
+    const { user_id } = req.body;
+
+    const [getOppositeUser] = (await sql`
+    SELECT 
+      u1.user_name AS u1,
+      u2.user_name AS u2,
+      CASE 
+          WHEN pp.user1_id != ${user_id} THEN 'u1'
+          WHEN pp.user2_id != ${user_id} THEN 'u2'
+      END AS opposite_user,
+      CASE 
+        WHEN pp.user1_id = 22 THEN 'u1'
+        WHEN pp.user2_id = 22 THEN 'u2'
+      END AS current_user
+    FROM p2p as pp
+    INNER JOIN users AS u1
+        ON u1.user_id = pp.user1_id
+    INNER JOIN users AS u2 
+        ON u2.user_id = pp.user2_id
+    WHERE pp.pp_id = ${pp_id}
+    `) as [
+      {
+        u1: string;
+        u2: string;
+        opposite_user: "u1" | "u2";
+        current_user: "u1" | "u2";
+      },
+    ];
+
+    const result = (await sql`
+      SELECT 
+        u.user_id ,
+        u.user_name,
+        ppc.content,
+        ppc.create_at
+      FROM p2p_chat as ppc
+      INNER JOIN users as u
+        ON ppc.user_created  = u.user_id 
+      where ppc.pp_id = ${pp_id}
+      `) as Message[];
+
+    res.status(200).json({
+      ok: true,
+      msg: "scucess",
+      data: [
+        {
+          user_id,
+          user_name: getOppositeUser[getOppositeUser.current_user],
+          opposite_user_name: getOppositeUser[getOppositeUser.opposite_user],
+          chats: result,
+        },
+      ],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  createPToP,
+  getP2PList,
+  sendMessageP2P,
+  searchUserForP2P,
+  getP2PChatData,
+};

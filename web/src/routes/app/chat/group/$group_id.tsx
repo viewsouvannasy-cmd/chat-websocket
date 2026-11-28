@@ -106,7 +106,9 @@ function RouteComponent() {
     join();
 
     return () => {
-      socket.send(JSON.stringify({ type: "leave-room", roomId: "world-chat" }));
+      socket.send(
+        JSON.stringify({ type: "leave-room", roomId: `group:${group_id}` }),
+      );
       socket.removeEventListener("open", join);
     };
   }, [group_id]);

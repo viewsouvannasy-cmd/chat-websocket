@@ -68,11 +68,21 @@ export interface P2PList extends BaseResponse {
     pp_id: number;
     u1: string;
     u2: string;
+    user_created: number;
     opposite_user: "u1" | "u2";
-    user_create_content: "u1" | "u2";
     last_content: string;
     create_at: Date;
   }[];
+}
+
+export interface P2PChat extends BaseResponse {
+  data: [
+    {
+      user_id: number;
+      opposite_user_name: string;
+      chats: Message[];
+    },
+  ];
 }
 
 export interface Message {

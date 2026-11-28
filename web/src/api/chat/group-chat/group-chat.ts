@@ -83,16 +83,3 @@ export const useSendMessageGroup = () => {
     mutationFn: (variable) => sendMessageGroup(false, variable),
   });
 };
-
-// export const useSearchUserForGroupOption = (
-//   debouncedSearch: string,
-//   group_id: number,
-// ) => {
-//   return queryOptions({
-//     queryKey: ["search-user", debouncedSearch],
-//     queryFn: () =>
-//       searchUserForGroup(true, { search: debouncedSearch, group_id }),
-//     enabled: debouncedSearch.length > 0,
-//     select: (res) => res.data,
-//   });
-// };
