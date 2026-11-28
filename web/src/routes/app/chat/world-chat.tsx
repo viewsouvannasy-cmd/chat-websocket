@@ -67,6 +67,7 @@ function RouteComponent() {
       const update = [...localMessage, { ...data }];
       setLocalMessage(update);
     };
+
     socket.addEventListener("message", handleMessage);
 
     return () => {
@@ -75,13 +76,24 @@ function RouteComponent() {
   }, [userData, localMessage]);
 
   useEffect(() => {
-    const join = () =>
-      socket.send(JSON.stringify({ type: "join-room", roomId: "world-chat" }));
+    const send = (payload: object) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(payload));
+      }
+    };
+
+    const join = () => send({ type: "join-room", roomId: "world-chat" });
+
+    if (socket.readyState === WebSocket.OPEN) {
+      join();
+    } else {
+      socket.addEventListener("open", join);
+    }
 
     join();
 
     return () => {
-      socket.send(JSON.stringify({ type: "leave-room", roomId: "world-chat" }));
+      send({ type: "leave-room", roomId: "world-chat" });
       socket.removeEventListener("open", join);
     };
   }, []);

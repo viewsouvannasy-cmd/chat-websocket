@@ -68,17 +68,22 @@ function RouteComponent() {
   }, [p2pData]);
 
   useEffect(() => {
-    const join = () =>
-      socket.send(
-        JSON.stringify({ type: "join-room", roomId: `p2p:${pp_id}` }),
-      );
+    const send = (payload: object) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(payload));
+      }
+    };
 
-    join();
+    const join = () => send({ type: "join-room", roomId: `p2p:${pp_id}` });
+
+    if (socket.readyState === WebSocket.OPEN) {
+      join();
+    } else {
+      socket.addEventListener("open", join);
+    }
 
     return () => {
-      socket.send(
-        JSON.stringify({ type: "leave-room", roomId: `p2p:${pp_id}` }),
-      );
+      send({ type: "leave-room", roomId: `p2p:${pp_id}` });
       socket.removeEventListener("open", join);
     };
   }, [pp_id]);

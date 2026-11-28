@@ -98,17 +98,22 @@ function RouteComponent() {
   }, [userData]);
 
   useEffect(() => {
-    const join = () =>
-      socket.send(
-        JSON.stringify({ type: "join-room", roomId: `group:${group_id}` }),
-      );
+    const send = (payload: object) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(payload));
+      }
+    };
 
-    join();
+    const join = () => send({ type: "join-room", roomId: `group:${group_id}` });
+
+    if (socket.readyState === WebSocket.OPEN) {
+      join();
+    } else {
+      socket.addEventListener("open", join);
+    }
 
     return () => {
-      socket.send(
-        JSON.stringify({ type: "leave-room", roomId: `group:${group_id}` }),
-      );
+      send({ type: "leave-room", roomId: `group:${group_id}` });
       socket.removeEventListener("open", join);
     };
   }, [group_id]);
