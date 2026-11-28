@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createPToP,
+  getP2PChatData,
   getP2PList,
   searchUserForP2P,
   sendMessageP2P,
@@ -9,6 +10,7 @@ import {
 const route = Router();
 
 route.get("/", getP2PList);
+route.get("/:pp_id", getP2PChatData);
 route.post("/search", searchUserForP2P);
 route.post("/", createPToP);
 

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Header } from "../../../../components/app/Header";
 import { useState } from "react";
 import { PopupSearchUser } from "../../../../components/popup/PopupSearchUser";
@@ -6,7 +6,9 @@ import {
   useCreateP2P,
   useGetP2PList,
 } from "../../../../api/chat/p2p-chat/p2p-chat";
+
 import { searchUserForP2P } from "../../../../api/chat/p2p-chat/p2p-chat-func";
+import { useGetUserData } from "../../../../api/user/user";
 
 export const Route = createFileRoute("/app/chat/p2p/")({
   component: RouteComponent,
@@ -14,6 +16,10 @@ export const Route = createFileRoute("/app/chat/p2p/")({
 
 function RouteComponent() {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
+
+  const navigate = useNavigate();
+
+  const { data: userData } = useGetUserData();
 
   const { data } = useGetP2PList();
 
@@ -25,6 +31,9 @@ function RouteComponent() {
       user2_id: user_id,
     });
   };
+
+  console.log(data);
+  console.log(userData);
   return (
     <>
       <div className="flex h-dvh w-dvw flex-col gap-4">
@@ -45,14 +54,23 @@ function RouteComponent() {
             {p2pList?.map((item) => {
               return (
                 <div
+                  role="button"
+                  onClick={() =>
+                    navigate({
+                      to: "/app/chat/p2p/$pp_id",
+                      params: { pp_id: String(item.pp_id) },
+                    })
+                  }
                   key={item.pp_id}
                   className="w-full cursor-pointer border border-gray-400 p-3 hover:shadow-lg hover:shadow-gray-200"
                 >
                   <p className="font-medium">{item[item?.opposite_user]}</p>
-                  {item[item?.user_create_content] && (
+                  {item.user_created && (
                     <span className="text-sm text-gray-500">
                       <span className="font-medium">
-                        {item[item?.user_create_content]}
+                        {item.user_created === userData?.data[0].user_id
+                          ? "You"
+                          : item[item.opposite_user]}
                       </span>
                       : {item.last_content}
                     </span>
